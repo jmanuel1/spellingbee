@@ -1,6 +1,6 @@
 # Open list of correcly-spelled words.
 wordFile = open("words.txt")
-threshold = 8
+THRESHOLD = 8
 listOfWords = input().split()
 index = 0
 
@@ -8,17 +8,26 @@ index = 0
 
 
 def lev(a, b):
-    if min(len(a), len(b)) == 0:
-        return max(len(a), len(b))
-    elif len(a) == len(b):
-        # Use Hamming Distance (special case)
-        return sum(x != y for x, y in zip(a, b))
-    else:
-        return min(lev(a[:-1], b) + 1, lev(a, b[:-1]) + 1,
-                   lev(a[:-1], b[:-1]) + int(not a[-1] == b[-1]))
+    d = [[0 for j in range(len(b) + 1)] for i in range(len(a) + 1)]
+
+    for i in range(1, len(a) + 1):
+        d[i][0] = i
+
+    for j in range(1, len(b) + 1):
+        d[0][j] = j
+
+    for j in range(1, len(b) + 1):
+        for i in range(1, len(a) + 1):
+            if a[i - 1] == b[j - 1]:
+                d[i][j] = d[i - 1][j - 1]
+            else:
+                d[i][j] = min(
+                    d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + 1)
+
+    return d[len(a)][len(b)]
 
 for x in listOfWords:
-    replacement = (x, threshold + 1)
+    replacement = (x, THRESHOLD + 1)
 
     for word in wordFile:
         x = x.lower()
@@ -26,10 +35,11 @@ for x in listOfWords:
 
         if x == word:
             replacement = (x, 0)
-            break  # Some words may actually be spelled correctly!
+            # Some words may actually be spelled correctly!
+            break
 
         d = lev(x, word)
-        if (d < threshold) and (replacement[1] > d):
+        if (d < THRESHOLD) and (replacement[1] > d):
             replacement = (word, d)
 
     listOfWords[index] = replacement[0]
