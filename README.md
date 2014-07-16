@@ -13,9 +13,9 @@ Example
 -------
 
     $ python autocorrect.py
-    yior
+    yuor
     
-Output could be `for`, depending on your `words.txt`.
+Output could be `your`, depending on your `words.txt`.
 
 Contributing
 ============

@@ -1,6 +1,6 @@
 # Open list of correcly-spelled words.
 wordFile = open("words.txt")
-THRESHOLD = 8
+THRESHOLD = 1
 listOfWords = input().split()
 index = 0
 
@@ -26,6 +26,27 @@ def lev(a, b):
 
     return d[len(a)][len(b)]
 
+# Length of longest common subsequence
+
+
+def lcsLen(a, b):
+    C = [[0 for j in range(len(b) + 1)] for i in range(len(a) + 1)]
+
+    for i in range(1, len(a) + 1):
+        for j in range(1, len(b) + 1):
+            if a[i - 1] == b[j - 1]:
+                C[i][j] = C[i - 1][j - 1] + 1
+            else:
+                C[i][j] = max(C[i][j - 1], C[i - 1][j])
+
+    return C[len(a)][len(b)]
+
+# String match score
+
+
+def matchScore(a, b):
+    return (lev(a, b) - lcsLen(a, b)) / 2
+
 for x in listOfWords:
     replacement = (x, THRESHOLD + 1)
 
@@ -38,7 +59,7 @@ for x in listOfWords:
             # Some words may actually be spelled correctly!
             break
 
-        d = lev(x, word)
+        d = matchScore(x, word)
         if (d < THRESHOLD) and (replacement[1] > d):
             replacement = (word, d)
 
