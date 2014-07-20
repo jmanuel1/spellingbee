@@ -1,70 +1,45 @@
-# Open list of correcly-spelled words.
-wordFile = open("words.txt")
-THRESHOLD = 1
-listOfWords = input().split()
-index = 0
+"""autocorrect.py -- program to correct spelling of stdin.
 
-# Compute Levenshtein distance
+Input is taken from sys.stdin, output goes to sys.stdout.
 
+This program requires a file called "words.txt" in the current working 
+directory; this file is a newline-separated list of words to consider 
+correctly-spelled.
 
-def lev(a, b):
-    d = [[0 for j in range(len(b) + 1)] for i in range(len(a) + 1)]
+This script is kept here as an example of how to use the spellingbee 
+module. It should not be used for production.
+"""
 
-    for i in range(1, len(a) + 1):
-        d[i][0] = i
-
-    for j in range(1, len(b) + 1):
-        d[0][j] = j
-
-    for j in range(1, len(b) + 1):
-        for i in range(1, len(a) + 1):
-            if a[i - 1] == b[j - 1]:
-                d[i][j] = d[i - 1][j - 1]
-            else:
-                d[i][j] = min(
-                    d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + 1)
-
-    return d[len(a)][len(b)]
-
-# Length of longest common subsequence
+import spellingbee
 
 
-def lcsLen(a, b):
-    C = [[0 for j in range(len(b) + 1)] for i in range(len(a) + 1)]
+def joinIfNotEmpty(sep, base, *other):
+    if base == "":
+        return sep.join(other)
+    else:
+        return sep.join([base] + list(other))
 
-    for i in range(1, len(a) + 1):
-        for j in range(1, len(b) + 1):
-            if a[i - 1] == b[j - 1]:
-                C[i][j] = C[i - 1][j - 1] + 1
-            else:
-                C[i][j] = max(C[i][j - 1], C[i - 1][j])
+correctStr = ""
+corrector = spellingbee.Corrector()
+suggestions = corrector.correct(input())
 
-    return C[len(a)][len(b)]
+for suggest in suggestions:
 
-# String match score
+    if None in suggest:
+        # The word was spelled correctly.
+        # str.join() RETURNS a string. str.join() is NOT in place.
+        correctStr = joinIfNotEmpty(" ", correctStr, suggest[None][0])
+    elif "nomatch" in suggest:
+        # No suitable suggestion was found.
+        correctStr = joinIfNotEmpty(" ", correctStr, suggest["nomatch"][0])
+    else:
+        # This word was corrected.
+        key = sorted(suggest)[0]
+
+        correctStr = joinIfNotEmpty(" ", correctStr, suggest[key][0])
 
 
-def matchScore(a, b):
-    return (lev(a, b) - lcsLen(a, b)) / 2
+print(correctStr)
 
-for x in listOfWords:
-    replacement = (x, THRESHOLD + 1)
-
-    for word in wordFile:
-        x = x.lower()
-        word = word[:-1].lower()
-
-        if x == word:
-            replacement = (x, 0)
-            # Some words may actually be spelled correctly!
-            break
-
-        d = matchScore(x, word)
-        if (d < THRESHOLD) and (replacement[1] > d):
-            replacement = (word, d)
-
-    listOfWords[index] = replacement[0]
-    index += 1
-    wordFile.seek(0)
-
-print(*listOfWords)
+# Remember to close files!
+corrector.wordlist.close()
